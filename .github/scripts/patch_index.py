@@ -12,6 +12,22 @@ HEAD_ADDITIONS = """
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <style>html, body { overscroll-behavior: none; touch-action: manipulation; }</style>
     <script>
+      window.close = function() {};
+      function requestFullscreenSafe() {
+        var el = document.documentElement;
+        var request = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+        if (request) {
+          try {
+            var result = request.call(el);
+            if (result && result.catch) { result.catch(function() {}); }
+          } catch (e) {}
+        }
+      }
+      window.addEventListener('load', requestFullscreenSafe);
+      document.addEventListener('click', requestFullscreenSafe, { once: true });
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') { requestFullscreenSafe(); }
+      });
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
       }
