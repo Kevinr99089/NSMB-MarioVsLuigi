@@ -12,7 +12,6 @@ HEAD_ADDITIONS = """
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <style>html, body { overscroll-behavior: none; touch-action: manipulation; }</style>
     <script>
-      window.close = function() {};
       function requestFullscreenSafe() {
         var el = document.documentElement;
         var request = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
@@ -23,11 +22,18 @@ HEAD_ADDITIONS = """
           } catch (e) {}
         }
       }
+      // Les navigateurs bloquent le plein ecran automatique sans un vrai
+      // geste utilisateur. On tente au chargement (ca ne marchera que si
+      // deja lance en PWA standalone), puis a CHAQUE clic/touch (pas
+      // seulement le premier) pour permettre de repasser en plein ecran
+      // apres en etre sorti. On ne le fait surtout PAS sur
+      // 'visibilitychange' : ce n'est pas un geste utilisateur, et sortir
+      // du plein ecran declenche cet evenement sur pas mal de navigateurs
+      // mobiles -> le navigateur rejette l'appel et affiche une erreur de
+      // permission a l'ecran.
       window.addEventListener('load', requestFullscreenSafe);
-      document.addEventListener('click', requestFullscreenSafe, { once: true });
-      document.addEventListener('visibilitychange', function() {
-        if (document.visibilityState === 'visible') { requestFullscreenSafe(); }
-      });
+      document.addEventListener('click', requestFullscreenSafe);
+      document.addEventListener('touchend', requestFullscreenSafe);
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
       }
@@ -47,7 +53,14 @@ def main():
         print("index.html deja patche, rien a faire")
         return
 
-    new_content, count = re.subn(r"(<head[^>]*>)", r"\1" + HEAD_ADDITIONS, content, count=1)
+    # Le <meta charset> DOIT rester dans les 1024 premiers octets du
+    # document (spec HTML5), sinon le navigateur peut se tromper
+    # d'encodage pour parser le reste du <head> (manifest, icones...),
+    # ce qui peut empecher la detection du manifest -> plus d'install
+    # possible. Le template Unity met ce tag juste apres <head>, donc on
+    # insere nos ajouts APRES lui (s'il existe) plutot qu'avant.
+    head_re = re.compile(r"<head[^>]*>\s*(?:<meta[^>]+charset[^>]*>\s*)?", re.IGNORECASE)
+    new_content, count = head_re.subn(lambda m: m.group(0) + HEAD_ADDITIONS, content, count=1)
 
     if count == 0:
         print("Balise <head> introuvable, patch non applique")
