@@ -22,7 +22,7 @@ jobs:
             cat > docs/manifest.json << 'EOF'
           {
             "name": "Mario Vs Luigi",
-            "short_name": "MvsL",
+            "short_name": "NSMB - MariovsLuigi",
             "start_url": "./index.html",
             "scope": "./",
             "display": "standalone",
