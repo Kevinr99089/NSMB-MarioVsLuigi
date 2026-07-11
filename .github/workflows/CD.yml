@@ -1,0 +1,52 @@
+name: Cleanup
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      deployments: write
+      actions: write
+
+    steps:
+      - name: Delete old deployments (keep 1)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const deployments = await github.paginate(
+              github.rest.repos.listDeployments,
+              { owner, repo, per_page: 100 }
+            );
+            if (deployments.length <= 1) return;
+            deployments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            for (const d of deployments.slice(1)) {
+              await github.rest.repos.createDeploymentStatus({
+                owner, repo, deployment_id: d.id, state: "inactive"
+              });
+              await github.rest.repos.deleteDeployment({ owner, repo, deployment_id: d.id });
+            }
+
+      - name: Delete all runs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const workflows = await github.paginate(
+              github.rest.actions.listRepoWorkflows,
+              { owner, repo, per_page: 100 }
+            );
+            for (const wf of workflows) {
+              const runs = await github.paginate(
+                github.rest.actions.listWorkflowRuns,
+                { owner, repo, workflow_id: wf.id, per_page: 100 }
+              );
+              for (const r of runs) {
+                if (["in_progress", "queued", "waiting", "requested"].includes(r.status)) continue;
+                await github.rest.actions.deleteWorkflowRun({
+                  owner, repo, run_id: r.id
+                });
+              }
+            }
