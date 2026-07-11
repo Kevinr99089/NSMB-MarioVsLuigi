@@ -1,0 +1,149 @@
+name: Update Mario Vs Luigi WebGL build
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Ensure PWA assets exist
+        run: |
+          mkdir -p docs
+          if [ ! -f docs/manifest.json ]; then
+            cat > docs/manifest.json << 'EOF'
+          {
+            "name": "Mario Vs Luigi",
+            "short_name": "MvsL",
+            "start_url": "./index.html",
+            "scope": "./",
+            "display": "standalone",
+            "orientation": "any",
+            "background_color": "#1e1e28",
+            "theme_color": "#1e1e28",
+            "icons": [
+              { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+              { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+            ]
+          }
+          EOF
+          fi
+          if [ ! -f docs/sw.js ]; then
+            cat > docs/sw.js << 'EOF'
+          const CACHE_NAME = 'mvsl-shell-v1';
+          const SHELL_FILES = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+
+          self.addEventListener('install', (event) => {
+            self.skipWaiting();
+            event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_FILES)));
+          });
+
+          self.addEventListener('activate', (event) => {
+            event.waitUntil(self.clients.claim());
+          });
+
+          self.addEventListener('fetch', (event) => {
+            const url = new URL(event.request.url);
+            const isShellFile = SHELL_FILES.some((f) => url.pathname.endsWith(f.replace('./', '')));
+            if (isShellFile) {
+              event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
+            }
+          });
+          EOF
+          fi
+          if [ ! -f docs/icon-192.png ]; then
+            echo "iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFBUlEQVR4nO3dPXYbORBFYchH62AspV6MFunFKLVibkROrKM23aK6gcJPvXe/bILRNIG6DXh4bJcCAAAAAAAAAAAAAAAAAAAAACk9zH6Asy6Xp/fZz4D7rte3NHO1/IMy8PmtHMSSD8bQ61othmUehqH3s0IMP2Y/QCkMv6sV9n1qgSssANYw6zSYdgIw/NiaNQ/Dq2Pw8Z2Rp8HQE4DhxxEj52RYAAw/zhg1L0MCYPhRY8TcdA+A4UeL3vPTNQCGHxF6zlG3ABh+ROo1T0t8EwzM0iUA3v7oocdchQfA8KOn6PniCgRroQHw9scIkXMWFgDDj5Gi5o0rEKwRAKyFBMD1BzNEzB0nAKwRAKw1B8D1BzO1zh8nAKwRAKwRAKw1/e577v//+/nr9z///PryvOTPVFP7J0k8Rj+Im9vhnPHfJIh6BFBpxuB/5eNZCOE8AjhhpaHfs30+YjiGAA5YffD3cCocQwB3ZBz8W4RwHwHsUBj8W4Swj+8BbigO/5b65zuLE+Avp8HgNPjECVC8hn/L9XNv2QfgPgTun9/2CuS+8VvOVyLLE4Dh3+e4LnYBOG7yGW7rYxWA2+bWclonmwCcNjWCy3pZBOCymdEc1k0+AIdN7El9/aQDUN+8UZTXUToA4DuyASi/tWZQXU/JAFQ3azbFdZULQHGTVqK2vnIBAGdIBaD2dlqV0jrLBKC0KRmorLdMAEANiQBU3kbZKKy7RABArfQBKLyFMsu+/ukDAFqkDiD720dF5n1IHQDQigBgLW0AmY9dRVn3I20AQISUAWR926jLuC8pAwCiEACsEQCspQsg4z3TSbb9SRcAEIkAYI0AYO2h5V++XJ7eox4EaHG9vlXNMicArBEArBEArBEArBEArBEArBEArBEArBEArBEArBEArBEArBEArBEArBEArBEArD3OfoCzsv2m69eX5+af4fiZR+EEgDUCgDUCgLV0AWS6XzrKtj/pAgAiEQCsEQCspQwg2z3TRcZ9SRkAECVtABnfNsqy7kfaAIAIBABrqQPIeuyqybwPqQMAWqUPIPPbR0H29U8fANBCIoDsb6GsFNZdIgCglkwACm+jTFTWWyaAUnQ2ZXVK6ywVAHCWXABKb6cVqa2vXACl6G3SKhTXVTKAUjQ3aybV9ZQNADhCOgDVt9ZoyusoHUAp2ps3gvr6yQdQiv4m9uKwbhYBlOKxmZFc1ssmgFJ8NrWV0zpZBVCK1+bWcFsfuwBK8dvkoxzXJd1fkBHlY7Oz/eUTPTgO/gfLE2DLefNL4fPbB1CK7xC4fu4t2yvQLacrEYP/iRPghvpwqH++szgBdiieBgz+PgK4QyEEBv8+AjggYwgM/jEEcMJ2qFaMgaE/jwAqrXQqMPj1CKDR7fCNCIKBj/PQ+gMul6f3iAcBal2vb9VzzPcAsEYAsEYAsNYcQMv9C2jVOn+cALBGALAWEgDXIMwQMXecALBGALAWFgDXIIwUNW+hJwARYITIOeMKBGvhAXAKoKfo+epyAhABeugxV1yBYK1bAJwCiNRrnrqeAESACD3nqPsViAjQovf8DPk1ABGgxoi5GfaLYCLAGaPmZej/BSICHDFyTqYNJH+aBG7NeEFO+x6A0wBbs+ZhiSHkNPA1+0W4xDfBsxcBc6yw79MfYA8ngq4Vhn5rqYfZQwz5rTb0W8s+2FcIYn0rDzwAAAAAAAAAAAAAAAAAAACU/AFcG3tquTkV/AAAAABJRU5ErkJggg==" | base64 -d > docs/icon-192.png
+          fi
+          if [ ! -f docs/icon-512.png ]; then
+            echo "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" | base64 -d > docs/icon-512.png
+          fi
+          touch docs/.nojekyll
+
+      - name: Check latest upstream release
+        id: check
+        run: |
+          RELEASE_JSON=$(curl -s -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/ipodtouch0218/NSMB-MarioVsLuigi/releases/latest")
+
+          TAG=$(echo "$RELEASE_JSON" | jq -r '.tag_name')
+          ASSET_URL=$(echo "$RELEASE_JSON" | jq -r '[.assets[] | select(.name | test("webgl"; "i")) | select(.name | endswith(".zip"))][0].browser_download_url')
+          ASSET_NAME=$(echo "$RELEASE_JSON" | jq -r '[.assets[] | select(.name | test("webgl"; "i")) | select(.name | endswith(".zip"))][0].name')
+
+          if [ "$ASSET_URL" = "null" ] || [ -z "$ASSET_URL" ]; then
+            echo "Aucun asset WebGL trouve dans la derniere release." >&2
+            exit 1
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "asset_url=$ASSET_URL" >> "$GITHUB_OUTPUT"
+          echo "asset_name=$ASSET_NAME" >> "$GITHUB_OUTPUT"
+
+          CURRENT=""
+          if [ -f docs/.game-version ]; then
+            CURRENT=$(cat docs/.game-version)
+          fi
+
+          if [ "$CURRENT" = "$TAG" ]; then
+            echo "up_to_date=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "up_to_date=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "Version actuelle: $CURRENT / Derniere release: $TAG"
+
+      - name: Download and extract new build
+        if: steps.check.outputs.up_to_date == 'false'
+        run: |
+          mkdir -p /tmp/new-build
+          curl -L -o /tmp/build.zip "${{ steps.check.outputs.asset_url }}"
+          unzip -q /tmp/build.zip -d /tmp/new-build
+
+          SUBDIR=$(find /tmp/new-build -mindepth 1 -maxdepth 1 -type d | head -n 1)
+          COUNT=$(find /tmp/new-build -mindepth 1 -maxdepth 1 | wc -l)
+          if [ "$COUNT" = "1" ] && [ -n "$SUBDIR" ]; then
+            echo "BUILD_ROOT=$SUBDIR" >> "$GITHUB_ENV"
+          else
+            echo "BUILD_ROOT=/tmp/new-build" >> "$GITHUB_ENV"
+          fi
+
+      - name: Patch index.html with PWA tags
+        if: steps.check.outputs.up_to_date == 'false'
+        run: python3 .github/scripts/patch_index.py "${{ env.BUILD_ROOT }}/index.html"
+
+      - name: Replace game files, keep PWA assets
+        if: steps.check.outputs.up_to_date == 'false'
+        run: |
+          find docs -mindepth 1 -maxdepth 1 \
+            ! -name 'manifest.json' \
+            ! -name 'sw.js' \
+            ! -name 'icon-192.png' \
+            ! -name 'icon-512.png' \
+            ! -name '.game-version' \
+            ! -name '.nojekyll' \
+            ! -name 'CNAME' \
+            -exec rm -rf {} +
+
+          cp -a "${{ env.BUILD_ROOT }}"/. docs/
+
+          echo "${{ steps.check.outputs.tag }}" > docs/.game-version
+
+      - name: Commit and push
+        if: steps.check.outputs.up_to_date == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs
+          if git diff --cached --quiet; then
+            echo "Rien a committer"
+            exit 0
+          fi
+          git commit -m "Update Mario Vs Luigi WebGL to ${{ steps.check.outputs.tag }}"
+          git push
