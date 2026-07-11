@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en-us">
   <head>
+    <meta charset="utf-8">
+    
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icon-192.png">
@@ -11,7 +13,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <style>html, body { overscroll-behavior: none; touch-action: manipulation; }</style>
     <script>
-      window.close = function() {};
       function requestFullscreenSafe() {
         var el = document.documentElement;
         var request = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
@@ -22,18 +23,23 @@
           } catch (e) {}
         }
       }
+      // Les navigateurs bloquent le plein ecran automatique sans un vrai
+      // geste utilisateur. On tente au chargement (ca ne marchera que si
+      // deja lance en PWA standalone), puis a CHAQUE clic/touch (pas
+      // seulement le premier) pour permettre de repasser en plein ecran
+      // apres en etre sorti. On ne le fait surtout PAS sur
+      // 'visibilitychange' : ce n'est pas un geste utilisateur, et sortir
+      // du plein ecran declenche cet evenement sur pas mal de navigateurs
+      // mobiles -> le navigateur rejette l'appel et affiche une erreur de
+      // permission a l'ecran.
       window.addEventListener('load', requestFullscreenSafe);
-      document.addEventListener('click', requestFullscreenSafe, { once: true });
-      document.addEventListener('visibilitychange', function() {
-        if (document.visibilityState === 'visible') { requestFullscreenSafe(); }
-      });
+      document.addEventListener('click', requestFullscreenSafe);
+      document.addEventListener('touchend', requestFullscreenSafe);
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
       }
     </script>
-
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity Web Player | NSMB-MarioVsLuigi</title>
   </head>
   <body style="text-align: center; padding: 0; border: 0; margin: 0;">
