@@ -47,25 +47,27 @@ HEAD_ADDITIONS = """
         var module = unityInstance && unityInstance.Module;
         if (!module) return;
         module.onQuit = function() {
-          var isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-            window.matchMedia('(display-mode: fullscreen)').matches ||
-            window.navigator.standalone === true;
-          function showQuitMessage() {
+          var isStandalone = window.navigator.standalone === true ||
+            location.search.indexOf('homescreen=1') !== -1;
+          if (document.fullscreenElement) {
+            (document.exitFullscreen || function() {}).call(document).catch(function() {});
+          }
+          try { window.close(); } catch (e) {}
+          if (isStandalone) {
+            setTimeout(function() {
+              try {
+                location.href = 'intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.HOME;end';
+              } catch (e) {}
+            }, 150);
+          }
+          setTimeout(function() {
             document.body.innerHTML =
               '<div style="position:fixed;inset:0;display:flex;align-items:center;' +
               'justify-content:center;background:#1e1e28;color:#fff;' +
               'font-family:sans-serif;font-size:1.1rem;text-align:center;' +
-              'padding:2rem;">Jeu quitte. Vous pouvez fermer cette fenetre.</div>';
-          }
-          if (document.fullscreenElement) {
-            (document.exitFullscreen || function() {}).call(document).catch(function() {});
-          }
-          if (isStandalone) {
-            showQuitMessage();
-            return;
-          }
-          try { window.close(); } catch (e) {}
-          setTimeout(showQuitMessage, 300);
+              'padding:2rem;">Jeu quitté. Vous pouvez maintenant fermer cette fenetre.
+Game closed. You can now close this window.</div>';
+          }, 500);
         };
       }
     </script>
