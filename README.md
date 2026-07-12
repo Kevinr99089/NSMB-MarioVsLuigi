@@ -27,13 +27,22 @@ By wrapping the WebGL build into a Progressive Web App structure, this deploymen
 ## 🎮 Access & Installation Instructions
 
 ### Web Access
-The game can be played instantly by visiting this [GitHub Pages](https://Kevinr99089.github.io/NSMB-MarioVsLuigi/)
+The game can be played instantly by visiting this [GitHub Pages](https://kevinr99089.github.io/NSMB-MarioVsLuigi/)
 
 ### Installing as a PWA (Android / Google Chrome)
 1. Navigate to the deployment URL using Google Chrome on an Android device.
 2. Tap the menu icon (three vertical dots) in the top-right corner.
 3. Select **"Add to Home screen"** or **"Install app"**.
 4. Confirm the installation. The game will now be available as a standalone app icon in your app drawer.
+
+---
+
+## ⚠️ Technical Notes & Performance Disclaimers
+
+As this deployment runs entirely within a web browser / PWA wrapper, please take note of the following technical considerations:
+* **Client-Side Processing:** The game engine, physics, and rendering are calculated entirely by your local device hardware. Although the game is relatively lightweight, performance may vary, and stuttering or lower framerates may occur on entry-level or mid-range Android devices.
+* **Initial Startup Time:** Because the device must download, parse, and initialize all WebGL game assets client-side upon launching, the initial loading screen may take a noticeable amount of time depending on your hardware specifications.
+* **Input Latency (Bluetooth Controllers):** Utilizing a wireless Bluetooth controller can occasionally introduce input lag. For the most responsive and optimal gameplay experience, it is highly recommended to connect your controller directly to your device via an **OTG (wired)** cable.
 
 ---
 
