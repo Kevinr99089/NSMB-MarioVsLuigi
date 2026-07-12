@@ -13,6 +13,10 @@ HEAD_ADDITIONS = """
     <style>html, body { overscroll-behavior: none; touch-action: manipulation; }</style>
     <script>
       function requestFullscreenSafe() {
+        // Deja en plein ecran : inutile de redemander, et un appel en trop
+        // ici est justement ce qui declenche "Permissions check failed"
+        // (activation utilisateur deja consommee par la 1ere demande).
+        if (document.fullscreenElement) return;
         var el = document.documentElement;
         var request = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
         if (request) {
@@ -37,6 +41,38 @@ HEAD_ADDITIONS = """
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
       }
+
+      // Unity affiche une popup bloquante ("An error occurred running the
+      // Unity content...") des qu'une exception JS remonte non interceptee
+      // - meme si elle est totalement benigne. Notre propre tentative de
+      // plein ecran ci-dessus est deja protegee (try/catch + .catch), mais
+      // Unity a AUSSI sa propre logique de plein ecran interne (bouton du
+      // player, raccourci clavier, option "Default Is Full Screen" du
+      // build...) qui n'est pas protegee de notre cote. Quand le
+      // navigateur refuse cette demande (geste utilisateur deja consomme,
+      // plein ecran deja actif...), l'erreur "Permissions check failed"
+      // remonte et Unity la traite comme fatale, alors que le jeu continue
+      // de fonctionner normalement. Comme ce script s'execute juste apres
+      // <head>, donc avant le runtime Unity (charge plus loin dans le
+      // <body>), nos listeners 'error'/'unhandledrejection' sont
+      // enregistres EN PREMIER : on peut donc intercepter precisement
+      // cette erreur precise et empecher le gestionnaire d'Unity
+      // (enregistre apres) de la recevoir, sans toucher aux vraies erreurs.
+      function isBenignFullscreenPermissionError(err) {
+        return err instanceof TypeError && err.message === 'Permissions check failed';
+      }
+      window.addEventListener('error', function(event) {
+        if (isBenignFullscreenPermissionError(event.error)) {
+          event.stopImmediatePropagation();
+          event.preventDefault();
+        }
+      });
+      window.addEventListener('unhandledrejection', function(event) {
+        if (isBenignFullscreenPermissionError(event.reason)) {
+          event.stopImmediatePropagation();
+          event.preventDefault();
+        }
+      });
     </script>
 """
 
