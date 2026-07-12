@@ -74,6 +74,71 @@
           event.preventDefault();
         }
       });
+
+      // Quand on clique sur "Quitter" DANS le jeu, Application.Quit() (cote
+      // C#) appelle en interne Module.QuitCleanup() : ca coupe le rendu,
+      // l'audio, les inputs... puis ca verifie si "Module.onQuit" est une
+      // fonction, et si oui l'appelle. Par defaut ce callback n'existe pas,
+      // donc apres le nettoyage il ne se passe RIEN de plus : la derniere
+      // image reste figee a l'ecran, plus de son, la page ne se ferme
+      // jamais. Ce n'est pas un bug du jeu : Unity attend que ce soit LA
+      // PAGE (nous) qui decide quoi faire au moment ou le jeu quitte. On
+      // definit donc onQuit nous-memes, des que le player est pret.
+      //
+      // Pour recuperer l'instance Unity sans dependre du script inline
+      // genere par Unity (createUnityInstance(canvas, config).then(...)),
+      // on intercepte la fonction globale "createUnityInstance" elle-meme :
+      // Build/*.loader.js la declare (function createUnityInstance(...))
+      // APRES ce script <head>, donc en definissant la propriete window
+      // avec configurable:false et un accesseur get/set AVANT que ce
+      // fichier ne se charge, la declaration globale du loader passe par
+      // notre "set" (c'est le comportement standard du JS pour une
+      // declaration de fonction globale qui rencontre une propriete non
+      // configurable) au lieu d'ecraser notre accesseur. On peut alors
+      // envelopper la vraie fonction sans toucher au script inline d'Unity,
+      // ce qui reste valide meme si Unity regenere ce template plus tard.
+      (function() {
+        var realCreateUnityInstance = null;
+        Object.defineProperty(window, 'createUnityInstance', {
+          configurable: false,
+          enumerable: true,
+          get: function() {
+            return function(canvas, config, onProgress) {
+              return realCreateUnityInstance(canvas, config, onProgress).then(function(unityInstance) {
+                hookUnityQuit(unityInstance);
+                return unityInstance;
+              });
+            };
+          },
+          set: function(fn) { realCreateUnityInstance = fn; }
+        });
+      })();
+
+      function hookUnityQuit(unityInstance) {
+        var module = unityInstance && unityInstance.Module;
+        if (!module) return;
+        module.onQuit = function() {
+          // On sort du plein ecran pour que la suite (fermeture ou message)
+          // soit visible, meme si window.close() est refuse.
+          if (document.fullscreenElement) {
+            (document.exitFullscreen || function() {}).call(document).catch(function() {});
+          }
+          try { window.close(); } catch (e) {}
+          // Si la fenetre est toujours la apres un court delai, c'est que
+          // le navigateur a refuse window.close() (restriction standard :
+          // un script ne peut fermer que les fenetres/onglets qu'il a
+          // lui-meme ouverts). Dans ce cas, on affiche un message clair
+          // plutot que de laisser la derniere image du jeu figee sans
+          // explication.
+          setTimeout(function() {
+            document.body.innerHTML =
+              '<div style="position:fixed;inset:0;display:flex;align-items:center;' +
+              'justify-content:center;background:#1e1e28;color:#fff;' +
+              'font-family:sans-serif;font-size:1.1rem;text-align:center;' +
+              'padding:2rem;">Jeu quitte. Vous pouvez fermer cette fenetre.</div>';
+          }, 300);
+        };
+      }
     </script>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity Web Player | NSMB-MarioVsLuigi</title>
