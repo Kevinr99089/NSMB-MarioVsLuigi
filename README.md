@@ -27,8 +27,7 @@ By wrapping the WebGL build into a Progressive Web App structure, this deploymen
 ## 🎮 Access & Installation Instructions
 
 ### Web Access
-The game can be played instantly by visiting the GitHub Pages URL associated with this repository:
-`https://Kevinr99089.github.io/NSMB-MarioVsLuigi/`
+The game can be played instantly by visiting this [GitHub Pages](https://Kevinr99089.github.io/NSMB-MarioVsLuigi/)
 
 ### Installing as a PWA (Android / Google Chrome)
 1. Navigate to the deployment URL using Google Chrome on an Android device.
