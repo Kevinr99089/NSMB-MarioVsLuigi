@@ -43,6 +43,7 @@ As this deployment runs entirely within a web browser / PWA wrapper, please take
 * **Client-Side Processing:** The game engine, physics, and rendering are calculated entirely by your local device hardware. Although the game is relatively lightweight, performance may vary, and stuttering or lower framerates may occur on entry-level or mid-range Android devices.
 * **Initial Startup Time:** Because the device must download, parse, and initialize all WebGL game assets client-side upon launching, the initial loading screen may take a noticeable amount of time depending on your hardware specifications.
 * **Input Latency (Bluetooth Controllers):** Utilizing a wireless Bluetooth controller can occasionally introduce input lag. For the most responsive and optimal gameplay experience, it is highly recommended to connect your controller directly to your device via an **OTG (wired)** cable.
+> Tested on the Samsung Galaxy S23 and Galaxy Tab S9; works perfectly with no lag, FPS drops, or bugs, and when used with an Xbox Series controller via Bluetooth, there is no noticeable latency.
 
 ---
 
