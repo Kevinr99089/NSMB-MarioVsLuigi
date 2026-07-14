@@ -2,6 +2,10 @@ name: Cleanup
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["update-game", "pages build and deployment"]
+    types:
+      - completed
 
 jobs:
   cleanup:
@@ -12,7 +16,7 @@ jobs:
 
     steps:
       - name: Delete old deployments (keep 1)
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -30,7 +34,7 @@ jobs:
             }
 
       - name: Delete all runs
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const { owner, repo } = context.repo;
