@@ -3,7 +3,7 @@ name: Cleanup
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ["update-game", "pages build and deployment"]
+    workflows: ["Update Mario Vs Luigi WebGL build", "pages build and deployment"]
     types:
       - completed
 
