@@ -76,48 +76,52 @@
     <style>
       #vgp-root { position: fixed; inset: 0; z-index: 999999; pointer-events: none; opacity: 1; transition: opacity 0.25s ease; touch-action: none; }
       #vgp-root.vgp-hidden { opacity: 0; }
-      #vgp-root.vgp-hidden .vgp-btn { pointer-events: none; }
-      .vgp-btn { position: absolute; display: flex; align-items: center; justify-content: center; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; background: rgba(255,255,255,0.14); border: 2px solid rgba(255,255,255,0.35); color: rgba(255,255,255,0.9); font-family: sans-serif; font-weight: bold; border-radius: 50%; }
-      .vgp-btn.vgp-active { background: rgba(255,255,255,0.4); }
-      .vgp-dpad { position: absolute; left: max(14px, env(safe-area-inset-left)); bottom: max(14px, env(safe-area-inset-bottom)); width: clamp(140px, 32vmin, 200px); height: clamp(140px, 32vmin, 200px); }
-      .vgp-dpad .vgp-btn { width: 34%; height: 34%; border-radius: 10px; font-size: clamp(14px, 3.4vmin, 20px); }
-      .vgp-dpad .vgp-up { top: 0; left: 33%; }
-      .vgp-dpad .vgp-down { bottom: 0; left: 33%; }
-      .vgp-dpad .vgp-left { left: 0; top: 33%; }
-      .vgp-dpad .vgp-right { right: 0; top: 33%; }
-      .vgp-actions { position: absolute; right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); width: clamp(140px, 32vmin, 200px); height: clamp(140px, 32vmin, 200px); }
-      .vgp-actions .vgp-btn { width: 42%; height: 42%; font-size: clamp(16px, 4vmin, 22px); }
-      .vgp-actions .vgp-a { right: 0; top: 8%; }
-      .vgp-actions .vgp-b { left: 0; bottom: 8%; }
-      .vgp-l, .vgp-r { position: absolute; top: max(14px, env(safe-area-inset-top)); width: clamp(56px, 13vmin, 80px); height: clamp(40px, 9vmin, 56px); border-radius: 12px; font-size: clamp(14px, 3.4vmin, 18px); }
-      .vgp-l { left: max(14px, env(safe-area-inset-left)); }
-      .vgp-r { right: max(14px, env(safe-area-inset-right)); }
-      .vgp-start { position: absolute; left: 50%; top: max(14px, env(safe-area-inset-top)); transform: translateX(-50%); width: clamp(70px, 16vmin, 96px); height: clamp(32px, 7vmin, 42px); border-radius: 16px; font-size: clamp(11px, 2.6vmin, 14px); }
+      #vgp-root.vgp-hidden .vgp-dpad, #vgp-root.vgp-hidden .vgp-actions, #vgp-root.vgp-hidden .vgp-l, #vgp-root.vgp-hidden .vgp-r, #vgp-root.vgp-hidden .vgp-start { pointer-events: none; }
+      .vgp-visual { position: absolute; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.14); border: 2px solid rgba(255,255,255,0.35); color: rgba(255,255,255,0.9); font-family: sans-serif; font-weight: bold; border-radius: 50%; pointer-events: none; }
+      .vgp-visual.vgp-active { background: rgba(255,255,255,0.42); }
+      .vgp-dpad { position: absolute; left: max(14px, env(safe-area-inset-left)); bottom: max(14px, env(safe-area-inset-bottom)); width: clamp(160px, 36vmin, 220px); height: clamp(160px, 36vmin, 220px); border-radius: 50%; background: rgba(255,255,255,0.06); pointer-events: auto; touch-action: none; }
+      .vgp-dpad .vgp-visual { width: 30%; height: 30%; border-radius: 8px; font-size: clamp(14px, 3.4vmin, 20px); }
+      .vgp-up { top: 4%; left: 35%; }
+      .vgp-down { bottom: 4%; left: 35%; }
+      .vgp-left { left: 4%; top: 35%; }
+      .vgp-right { right: 4%; top: 35%; }
+      .vgp-knob { position: absolute; left: 50%; top: 50%; width: 24%; height: 24%; margin-left: -12%; margin-top: -12%; border-radius: 50%; background: rgba(255,255,255,0.32); border: 2px solid rgba(255,255,255,0.55); pointer-events: none; transition: transform 0.05s linear; }
+      .vgp-actions { position: absolute; right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); width: clamp(180px, 40vmin, 240px); height: clamp(180px, 40vmin, 240px); pointer-events: auto; touch-action: none; }
+      .vgp-actions .vgp-visual { width: 50%; height: 50%; font-size: clamp(18px, 4.4vmin, 24px); }
+      .vgp-a { right: 0; top: 2%; }
+      .vgp-b { left: 0; bottom: 2%; }
+      .vgp-l, .vgp-r { position: absolute; top: max(14px, env(safe-area-inset-top)); width: clamp(64px, 15vmin, 92px); height: clamp(46px, 10vmin, 64px); border-radius: 12px; font-size: clamp(14px, 3.4vmin, 18px); pointer-events: auto; touch-action: none; }
+      .vgp-l { left: max(48px, calc(env(safe-area-inset-left) + 32px)); }
+      .vgp-r { right: max(48px, calc(env(safe-area-inset-right) + 32px)); }
+      .vgp-start { position: absolute; left: 50%; top: max(14px, env(safe-area-inset-top)); transform: translateX(-50%); width: clamp(84px, 18vmin, 110px); height: clamp(38px, 8vmin, 48px); border-radius: 16px; font-size: clamp(11px, 2.6vmin, 14px); pointer-events: auto; touch-action: none; }
     </style>
     <script>
       function vgpInit() {
         var isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
         if (!isTouch) return;
+
         var root = document.createElement('div');
         root.id = 'vgp-root';
         root.innerHTML =
           '<div class="vgp-dpad">' +
-          '<div class="vgp-btn vgp-up" data-code="ArrowUp" data-key="ArrowUp" data-keycode="38">&#9650;</div>' +
-          '<div class="vgp-btn vgp-down" data-code="ArrowDown" data-key="ArrowDown" data-keycode="40">&#9660;</div>' +
-          '<div class="vgp-btn vgp-left" data-code="ArrowLeft" data-key="ArrowLeft" data-keycode="37">&#9664;</div>' +
-          '<div class="vgp-btn vgp-right" data-code="ArrowRight" data-key="ArrowRight" data-keycode="39">&#9654;</div>' +
+          '<div class="vgp-visual vgp-up">&#9650;</div>' +
+          '<div class="vgp-visual vgp-down">&#9660;</div>' +
+          '<div class="vgp-visual vgp-left">&#9664;</div>' +
+          '<div class="vgp-visual vgp-right">&#9654;</div>' +
+          '<div class="vgp-knob"></div>' +
           '</div>' +
           '<div class="vgp-actions">' +
-          '<div class="vgp-btn vgp-a" data-code="Space" data-key=" " data-keycode="32">A</div>' +
-          '<div class="vgp-btn vgp-b" data-code="ShiftLeft" data-key="Shift" data-keycode="16">B</div>' +
+          '<div class="vgp-visual vgp-a">A</div>' +
+          '<div class="vgp-visual vgp-b">B</div>' +
           '</div>' +
-          '<div class="vgp-btn vgp-l" data-code="KeyQ" data-key="q" data-keycode="81">L</div>' +
-          '<div class="vgp-btn vgp-r" data-code="KeyE" data-key="e" data-keycode="69">R</div>' +
-          '<div class="vgp-btn vgp-start" data-code="Escape" data-key="Escape" data-keycode="27">Start</div>';
+          '<div class="vgp-visual vgp-l">L</div>' +
+          '<div class="vgp-visual vgp-r">R</div>' +
+          '<div class="vgp-visual vgp-start">Start</div>';
         document.body.appendChild(root);
 
+        var canvas = document.getElementById('unity-canvas');
+
         function vgpSendKey(type, code, key, keyCode) {
-          var canvas = document.getElementById('unity-canvas');
           var targets = canvas ? [document, window, canvas] : [document, window];
           for (var i = 0; i < targets.length; i++) {
             targets[i].dispatchEvent(new KeyboardEvent(type, {
@@ -127,40 +131,184 @@
           }
         }
 
-        var buttons = root.querySelectorAll('.vgp-btn');
-        for (var i = 0; i < buttons.length; i++) {
-          (function (btn) {
-            var code = btn.getAttribute('data-code');
-            var key = btn.getAttribute('data-key');
-            var keyCode = parseInt(btn.getAttribute('data-keycode'), 10);
-            var activePointer = null;
-            btn.addEventListener('pointerdown', function (e) {
-              e.preventDefault();
-              if (activePointer !== null) return;
-              activePointer = e.pointerId;
-              btn.classList.add('vgp-active');
-              vgpSendKey('keydown', code, key, keyCode);
-            });
-            function vgpRelease(e) {
-              if (activePointer === null || e.pointerId !== activePointer) return;
-              activePointer = null;
-              btn.classList.remove('vgp-active');
-              vgpSendKey('keyup', code, key, keyCode);
-            }
-            btn.addEventListener('pointerup', vgpRelease);
-            btn.addEventListener('pointercancel', vgpRelease);
-          })(buttons[i]);
-        }
+        var vgpActiveCount = 0;
+        function vgpMarkBusy() { vgpActiveCount++; }
+        function vgpMarkFree() { vgpActiveCount = Math.max(0, vgpActiveCount - 1); }
 
         var vgpHideTimer = null;
+        function vgpTryHide() {
+          if (vgpActiveCount > 0) {
+            vgpHideTimer = setTimeout(vgpTryHide, 1000);
+            return;
+          }
+          root.classList.add('vgp-hidden');
+        }
         function vgpShow() {
           root.classList.remove('vgp-hidden');
           if (vgpHideTimer) clearTimeout(vgpHideTimer);
-          vgpHideTimer = setTimeout(function () { root.classList.add('vgp-hidden'); }, 5000);
+          vgpHideTimer = setTimeout(vgpTryHide, 5000);
         }
         document.addEventListener('touchstart', vgpShow, { passive: true });
         document.addEventListener('pointerdown', vgpShow);
         vgpShow();
+
+        function setupSoloButton(el, code, key, keyCode) {
+          var pointerId = null;
+          el.addEventListener('pointerdown', function (e) {
+            e.preventDefault();
+            if (pointerId !== null) return;
+            pointerId = e.pointerId;
+            el.setPointerCapture(pointerId);
+            el.classList.add('vgp-active');
+            vgpMarkBusy();
+            vgpSendKey('keydown', code, key, keyCode);
+          });
+          function release(e) {
+            if (pointerId === null || e.pointerId !== pointerId) return;
+            pointerId = null;
+            el.classList.remove('vgp-active');
+            vgpMarkFree();
+            vgpSendKey('keyup', code, key, keyCode);
+          }
+          el.addEventListener('pointerup', release);
+          el.addEventListener('pointercancel', release);
+          el.addEventListener('lostpointercapture', release);
+        }
+
+        setupSoloButton(root.querySelector('.vgp-l'), 'KeyQ', 'q', 81);
+        setupSoloButton(root.querySelector('.vgp-r'), 'KeyE', 'e', 69);
+        setupSoloButton(root.querySelector('.vgp-start'), 'Escape', 'Escape', 27);
+
+        function setupSlideGroup(container, entries) {
+          var pointerId = null;
+          var pressed = null;
+          function findTarget(x, y) {
+            for (var i = 0; i < entries.length; i++) {
+              var r = entries[i].el.getBoundingClientRect();
+              if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return entries[i];
+            }
+            return null;
+          }
+          function press(entry) {
+            if (pressed === entry) return;
+            if (pressed) {
+              pressed.el.classList.remove('vgp-active');
+              vgpSendKey('keyup', pressed.code, pressed.key, pressed.keyCode);
+            }
+            pressed = entry;
+            if (pressed) {
+              pressed.el.classList.add('vgp-active');
+              vgpSendKey('keydown', pressed.code, pressed.key, pressed.keyCode);
+            }
+          }
+          container.addEventListener('pointerdown', function (e) {
+            if (pointerId !== null) return;
+            e.preventDefault();
+            pointerId = e.pointerId;
+            container.setPointerCapture(pointerId);
+            vgpMarkBusy();
+            press(findTarget(e.clientX, e.clientY));
+          });
+          container.addEventListener('pointermove', function (e) {
+            if (pointerId === null || e.pointerId !== pointerId) return;
+            var target = findTarget(e.clientX, e.clientY);
+            if (target) press(target);
+          });
+          function release(e) {
+            if (pointerId === null || e.pointerId !== pointerId) return;
+            pointerId = null;
+            press(null);
+            vgpMarkFree();
+          }
+          container.addEventListener('pointerup', release);
+          container.addEventListener('pointercancel', release);
+          container.addEventListener('lostpointercapture', release);
+        }
+
+        setupSlideGroup(root.querySelector('.vgp-actions'), [
+          { el: root.querySelector('.vgp-a'), code: 'Space', key: ' ', keyCode: 32 },
+          { el: root.querySelector('.vgp-b'), code: 'ShiftLeft', key: 'Shift', keyCode: 16 }
+        ]);
+
+        function setupStick(container, knob) {
+          var pointerId = null;
+          var pressedKeys = { up: false, down: false, left: false, right: false };
+          var keyDefs = {
+            up: ['ArrowUp', 'ArrowUp', 38],
+            down: ['ArrowDown', 'ArrowDown', 40],
+            left: ['ArrowLeft', 'ArrowLeft', 37],
+            right: ['ArrowRight', 'ArrowRight', 39]
+          };
+          var octants = [
+            ['right'], ['up', 'right'], ['up'], ['up', 'left'],
+            ['left'], ['down', 'left'], ['down'], ['down', 'right']
+          ];
+          function setKey(name, active) {
+            if (pressedKeys[name] === active) return;
+            pressedKeys[name] = active;
+            var def = keyDefs[name];
+            vgpSendKey(active ? 'keydown' : 'keyup', def[0], def[1], def[2]);
+            var visual = container.querySelector('.vgp-' + name);
+            if (visual) visual.classList.toggle('vgp-active', active);
+          }
+          function releaseAll() {
+            setKey('up', false);
+            setKey('down', false);
+            setKey('left', false);
+            setKey('right', false);
+            knob.style.transform = 'translate(0px, 0px)';
+          }
+          function update(x, y) {
+            var rect = container.getBoundingClientRect();
+            var dx = x - (rect.left + rect.width / 2);
+            var dy = y - (rect.top + rect.height / 2);
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            var radius = rect.width / 2;
+            var deadzone = radius * 0.18;
+            var maxKnob = radius * 0.62;
+            var kx = dx, ky = dy;
+            if (dist > maxKnob) {
+              kx = (dx / dist) * maxKnob;
+              ky = (dy / dist) * maxKnob;
+            }
+            knob.style.transform = 'translate(' + kx + 'px, ' + ky + 'px)';
+            if (dist < deadzone) {
+              setKey('up', false); setKey('down', false); setKey('left', false); setKey('right', false);
+              return;
+            }
+            var angle = Math.atan2(-dy, dx) * 180 / Math.PI;
+            var idx = Math.round(angle / 45);
+            idx = ((idx % 8) + 8) % 8;
+            var active = octants[idx];
+            setKey('up', active.indexOf('up') !== -1);
+            setKey('down', active.indexOf('down') !== -1);
+            setKey('left', active.indexOf('left') !== -1);
+            setKey('right', active.indexOf('right') !== -1);
+          }
+          container.addEventListener('pointerdown', function (e) {
+            if (pointerId !== null) return;
+            e.preventDefault();
+            pointerId = e.pointerId;
+            container.setPointerCapture(pointerId);
+            vgpMarkBusy();
+            update(e.clientX, e.clientY);
+          });
+          container.addEventListener('pointermove', function (e) {
+            if (pointerId === null || e.pointerId !== pointerId) return;
+            update(e.clientX, e.clientY);
+          });
+          function release(e) {
+            if (pointerId === null || e.pointerId !== pointerId) return;
+            pointerId = null;
+            releaseAll();
+            vgpMarkFree();
+          }
+          container.addEventListener('pointerup', release);
+          container.addEventListener('pointercancel', release);
+          container.addEventListener('lostpointercapture', release);
+        }
+
+        setupStick(root.querySelector('.vgp-dpad'), root.querySelector('.vgp-knob'));
       }
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', vgpInit);
