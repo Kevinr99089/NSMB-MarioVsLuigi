@@ -11,7 +11,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <style>html, body { overscroll-behavior: none; touch-action: manipulation; }</style>
+    <style>html, body { overscroll-behavior: none; touch-action: manipulation; margin: 0 !important; padding: 0 !important; overflow: hidden !important; background: #1e1e28 !important; }
+    #unity-canvas { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; }</style>
     <script>
       function requestFullscreenSafe() {
         if (document.fullscreenElement) return;
@@ -72,6 +73,34 @@
           }, 500);
         };
       }
+    </script>
+    <script>
+      function fitUnityCanvasNoCrop() {
+        var canvas = document.getElementById('unity-canvas');
+        if (!canvas) return;
+        var targetRatio = 16 / 9;
+        var vw = (window.visualViewport && window.visualViewport.width) || window.innerWidth;
+        var vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+        var w, h;
+        if (vw / vh > targetRatio) {
+          h = vh;
+          w = h * targetRatio;
+        } else {
+          w = vw;
+          h = w / targetRatio;
+        }
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+      }
+      window.addEventListener('load', fitUnityCanvasNoCrop);
+      window.addEventListener('resize', fitUnityCanvasNoCrop);
+      window.addEventListener('orientationchange', fitUnityCanvasNoCrop);
+      document.addEventListener('fullscreenchange', fitUnityCanvasNoCrop);
+      document.addEventListener('webkitfullscreenchange', fitUnityCanvasNoCrop);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', fitUnityCanvasNoCrop);
+      }
+      fitUnityCanvasNoCrop();
     </script>
     <style>
       #vgp-root { position: fixed; inset: 0; z-index: 999999; pointer-events: none; opacity: 1; transition: opacity 0.25s ease; touch-action: none; }
