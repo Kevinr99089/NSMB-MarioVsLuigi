@@ -104,6 +104,7 @@
     </script>
     <style>
       #vgp-root { position: fixed; inset: 0; z-index: 999999; pointer-events: none; opacity: 1; transition: opacity 0.25s ease; touch-action: none; }
+      #vgp-root, #vgp-root * { -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; -webkit-tap-highlight-color: transparent !important; }
       #vgp-root.vgp-hidden { opacity: 0; }
       #vgp-root.vgp-hidden .vgp-dpad, #vgp-root.vgp-hidden .vgp-actions, #vgp-root.vgp-hidden .vgp-l, #vgp-root.vgp-hidden .vgp-r, #vgp-root.vgp-hidden .vgp-start { pointer-events: none; }
       .vgp-visual { position: absolute; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.14); border: 2px solid rgba(255,255,255,0.35); color: rgba(255,255,255,0.9); font-family: sans-serif; font-weight: bold; border-radius: 50%; pointer-events: none; }
@@ -147,6 +148,8 @@
           '<div class="vgp-visual vgp-r">R</div>' +
           '<div class="vgp-visual vgp-start">Start</div>';
         document.body.appendChild(root);
+        root.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+        root.addEventListener('selectstart', function (e) { e.preventDefault(); });
 
         var canvas = document.getElementById('unity-canvas');
 
