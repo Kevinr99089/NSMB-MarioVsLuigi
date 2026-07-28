@@ -73,6 +73,101 @@
         };
       }
     </script>
+    <style>
+      #vgp-root { position: fixed; inset: 0; z-index: 999999; pointer-events: none; opacity: 1; transition: opacity 0.25s ease; touch-action: none; }
+      #vgp-root.vgp-hidden { opacity: 0; }
+      #vgp-root.vgp-hidden .vgp-btn { pointer-events: none; }
+      .vgp-btn { position: absolute; display: flex; align-items: center; justify-content: center; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; background: rgba(255,255,255,0.14); border: 2px solid rgba(255,255,255,0.35); color: rgba(255,255,255,0.9); font-family: sans-serif; font-weight: bold; border-radius: 50%; }
+      .vgp-btn.vgp-active { background: rgba(255,255,255,0.4); }
+      .vgp-dpad { position: absolute; left: max(14px, env(safe-area-inset-left)); bottom: max(14px, env(safe-area-inset-bottom)); width: clamp(140px, 32vmin, 200px); height: clamp(140px, 32vmin, 200px); }
+      .vgp-dpad .vgp-btn { width: 34%; height: 34%; border-radius: 10px; font-size: clamp(14px, 3.4vmin, 20px); }
+      .vgp-dpad .vgp-up { top: 0; left: 33%; }
+      .vgp-dpad .vgp-down { bottom: 0; left: 33%; }
+      .vgp-dpad .vgp-left { left: 0; top: 33%; }
+      .vgp-dpad .vgp-right { right: 0; top: 33%; }
+      .vgp-actions { position: absolute; right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); width: clamp(140px, 32vmin, 200px); height: clamp(140px, 32vmin, 200px); }
+      .vgp-actions .vgp-btn { width: 42%; height: 42%; font-size: clamp(16px, 4vmin, 22px); }
+      .vgp-actions .vgp-a { right: 0; top: 8%; }
+      .vgp-actions .vgp-b { left: 0; bottom: 8%; }
+      .vgp-l, .vgp-r { position: absolute; top: max(14px, env(safe-area-inset-top)); width: clamp(56px, 13vmin, 80px); height: clamp(40px, 9vmin, 56px); border-radius: 12px; font-size: clamp(14px, 3.4vmin, 18px); }
+      .vgp-l { left: max(14px, env(safe-area-inset-left)); }
+      .vgp-r { right: max(14px, env(safe-area-inset-right)); }
+      .vgp-start { position: absolute; left: 50%; top: max(14px, env(safe-area-inset-top)); transform: translateX(-50%); width: clamp(70px, 16vmin, 96px); height: clamp(32px, 7vmin, 42px); border-radius: 16px; font-size: clamp(11px, 2.6vmin, 14px); }
+    </style>
+    <script>
+      function vgpInit() {
+        var isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+        if (!isTouch) return;
+        var root = document.createElement('div');
+        root.id = 'vgp-root';
+        root.innerHTML =
+          '<div class="vgp-dpad">' +
+          '<div class="vgp-btn vgp-up" data-code="ArrowUp" data-key="ArrowUp" data-keycode="38">&#9650;</div>' +
+          '<div class="vgp-btn vgp-down" data-code="ArrowDown" data-key="ArrowDown" data-keycode="40">&#9660;</div>' +
+          '<div class="vgp-btn vgp-left" data-code="ArrowLeft" data-key="ArrowLeft" data-keycode="37">&#9664;</div>' +
+          '<div class="vgp-btn vgp-right" data-code="ArrowRight" data-key="ArrowRight" data-keycode="39">&#9654;</div>' +
+          '</div>' +
+          '<div class="vgp-actions">' +
+          '<div class="vgp-btn vgp-a" data-code="Space" data-key=" " data-keycode="32">A</div>' +
+          '<div class="vgp-btn vgp-b" data-code="ShiftLeft" data-key="Shift" data-keycode="16">B</div>' +
+          '</div>' +
+          '<div class="vgp-btn vgp-l" data-code="KeyQ" data-key="q" data-keycode="81">L</div>' +
+          '<div class="vgp-btn vgp-r" data-code="KeyE" data-key="e" data-keycode="69">R</div>' +
+          '<div class="vgp-btn vgp-start" data-code="Escape" data-key="Escape" data-keycode="27">Start</div>';
+        document.body.appendChild(root);
+
+        function vgpSendKey(type, code, key, keyCode) {
+          var canvas = document.getElementById('unity-canvas');
+          var targets = canvas ? [document, window, canvas] : [document, window];
+          for (var i = 0; i < targets.length; i++) {
+            targets[i].dispatchEvent(new KeyboardEvent(type, {
+              code: code, key: key, keyCode: keyCode, which: keyCode,
+              bubbles: true, cancelable: true
+            }));
+          }
+        }
+
+        var buttons = root.querySelectorAll('.vgp-btn');
+        for (var i = 0; i < buttons.length; i++) {
+          (function (btn) {
+            var code = btn.getAttribute('data-code');
+            var key = btn.getAttribute('data-key');
+            var keyCode = parseInt(btn.getAttribute('data-keycode'), 10);
+            var activePointer = null;
+            btn.addEventListener('pointerdown', function (e) {
+              e.preventDefault();
+              if (activePointer !== null) return;
+              activePointer = e.pointerId;
+              btn.classList.add('vgp-active');
+              vgpSendKey('keydown', code, key, keyCode);
+            });
+            function vgpRelease(e) {
+              if (activePointer === null || e.pointerId !== activePointer) return;
+              activePointer = null;
+              btn.classList.remove('vgp-active');
+              vgpSendKey('keyup', code, key, keyCode);
+            }
+            btn.addEventListener('pointerup', vgpRelease);
+            btn.addEventListener('pointercancel', vgpRelease);
+          })(buttons[i]);
+        }
+
+        var vgpHideTimer = null;
+        function vgpShow() {
+          root.classList.remove('vgp-hidden');
+          if (vgpHideTimer) clearTimeout(vgpHideTimer);
+          vgpHideTimer = setTimeout(function () { root.classList.add('vgp-hidden'); }, 5000);
+        }
+        document.addEventListener('touchstart', vgpShow, { passive: true });
+        document.addEventListener('pointerdown', vgpShow);
+        vgpShow();
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', vgpInit);
+      } else {
+        vgpInit();
+      }
+    </script>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity Web Player | NSMB-MarioVsLuigi</title>
   </head>
