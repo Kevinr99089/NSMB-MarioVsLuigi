@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       force:
-        description: 'Forcer le re-patch meme si le jeu upstream n a pas change (utile apres une modif de patch_index.py)'
+        description: 'Force re-patch even though the game upstream hasn t changed'
         type: boolean
         default: false
 
