@@ -179,30 +179,50 @@ HEAD_ADDITIONS = """
           vgpHideTimer = setTimeout(vgpTryHide, 5000);
         }
         document.addEventListener('touchstart', vgpShow, { passive: true });
-        document.addEventListener('pointerdown', vgpShow);
         vgpShow();
 
+        function vgpFindTouch(e, id) {
+          for (var i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === id) return e.changedTouches[i];
+          }
+          return null;
+        }
+
+        var vgpControls = [];
+        function vgpRegisterControl(forceRelease) { vgpControls.push(forceRelease); }
+        function vgpForceReleaseAll() {
+          for (var i = 0; i < vgpControls.length; i++) vgpControls[i]();
+        }
+        document.addEventListener('visibilitychange', function () {
+          if (document.hidden) vgpForceReleaseAll();
+        });
+        window.addEventListener('blur', vgpForceReleaseAll);
+        window.addEventListener('pagehide', vgpForceReleaseAll);
+
         function setupSoloButton(el, code, key, keyCode) {
-          var pointerId = null;
-          el.addEventListener('pointerdown', function (e) {
-            e.preventDefault();
-            if (pointerId !== null) return;
-            pointerId = e.pointerId;
-            el.setPointerCapture(pointerId);
-            el.classList.add('vgp-active');
-            vgpMarkBusy();
-            vgpSendKey('keydown', code, key, keyCode);
-          });
-          function release(e) {
-            if (pointerId === null || e.pointerId !== pointerId) return;
-            pointerId = null;
+          var touchId = null;
+          function release() {
+            if (touchId === null) return;
+            touchId = null;
             el.classList.remove('vgp-active');
             vgpMarkFree();
             vgpSendKey('keyup', code, key, keyCode);
           }
-          el.addEventListener('pointerup', release);
-          el.addEventListener('pointercancel', release);
-          el.addEventListener('lostpointercapture', release);
+          el.addEventListener('touchstart', function (e) {
+            e.preventDefault();
+            if (touchId !== null) return;
+            touchId = e.changedTouches[0].identifier;
+            el.classList.add('vgp-active');
+            vgpMarkBusy();
+            vgpSendKey('keydown', code, key, keyCode);
+          });
+          function onEnd(e) {
+            if (touchId === null || !vgpFindTouch(e, touchId)) return;
+            release();
+          }
+          el.addEventListener('touchend', onEnd);
+          el.addEventListener('touchcancel', onEnd);
+          vgpRegisterControl(release);
         }
 
         setupSoloButton(root.querySelector('.vgp-l'), 'KeyQ', 'q', 81);
@@ -210,7 +230,7 @@ HEAD_ADDITIONS = """
         setupSoloButton(root.querySelector('.vgp-start'), 'Escape', 'Escape', 27);
 
         function setupSlideGroup(container, entries) {
-          var pointerId = null;
+          var touchId = null;
           var pressed = null;
           function findTarget(x, y) {
             for (var i = 0; i < entries.length; i++) {
@@ -231,28 +251,33 @@ HEAD_ADDITIONS = """
               vgpSendKey('keydown', pressed.code, pressed.key, pressed.keyCode);
             }
           }
-          container.addEventListener('pointerdown', function (e) {
-            if (pointerId !== null) return;
-            e.preventDefault();
-            pointerId = e.pointerId;
-            container.setPointerCapture(pointerId);
-            vgpMarkBusy();
-            press(findTarget(e.clientX, e.clientY));
-          });
-          container.addEventListener('pointermove', function (e) {
-            if (pointerId === null || e.pointerId !== pointerId) return;
-            var target = findTarget(e.clientX, e.clientY);
-            if (target) press(target);
-          });
-          function release(e) {
-            if (pointerId === null || e.pointerId !== pointerId) return;
-            pointerId = null;
+          function release() {
+            if (touchId === null) return;
+            touchId = null;
             press(null);
             vgpMarkFree();
           }
-          container.addEventListener('pointerup', release);
-          container.addEventListener('pointercancel', release);
-          container.addEventListener('lostpointercapture', release);
+          container.addEventListener('touchstart', function (e) {
+            e.preventDefault();
+            if (touchId !== null) return;
+            var t = e.changedTouches[0];
+            touchId = t.identifier;
+            vgpMarkBusy();
+            press(findTarget(t.clientX, t.clientY));
+          });
+          container.addEventListener('touchmove', function (e) {
+            var t = vgpFindTouch(e, touchId);
+            if (!t) return;
+            e.preventDefault();
+            press(findTarget(t.clientX, t.clientY));
+          });
+          function onEnd(e) {
+            if (touchId === null || !vgpFindTouch(e, touchId)) return;
+            release();
+          }
+          container.addEventListener('touchend', onEnd);
+          container.addEventListener('touchcancel', onEnd);
+          vgpRegisterControl(release);
         }
 
         setupSlideGroup(root.querySelector('.vgp-actions'), [
@@ -261,7 +286,7 @@ HEAD_ADDITIONS = """
         ]);
 
         function setupStick(container, knob) {
-          var pointerId = null;
+          var touchId = null;
           var pressedKeys = { up: false, down: false, left: false, right: false };
           var keyDefs = {
             up: ['ArrowUp', 'ArrowUp', 38],
@@ -315,27 +340,33 @@ HEAD_ADDITIONS = """
             setKey('left', active.indexOf('left') !== -1);
             setKey('right', active.indexOf('right') !== -1);
           }
-          container.addEventListener('pointerdown', function (e) {
-            if (pointerId !== null) return;
-            e.preventDefault();
-            pointerId = e.pointerId;
-            container.setPointerCapture(pointerId);
-            vgpMarkBusy();
-            update(e.clientX, e.clientY);
-          });
-          container.addEventListener('pointermove', function (e) {
-            if (pointerId === null || e.pointerId !== pointerId) return;
-            update(e.clientX, e.clientY);
-          });
-          function release(e) {
-            if (pointerId === null || e.pointerId !== pointerId) return;
-            pointerId = null;
+          function release() {
+            if (touchId === null) return;
+            touchId = null;
             releaseAll();
             vgpMarkFree();
           }
-          container.addEventListener('pointerup', release);
-          container.addEventListener('pointercancel', release);
-          container.addEventListener('lostpointercapture', release);
+          container.addEventListener('touchstart', function (e) {
+            e.preventDefault();
+            if (touchId !== null) return;
+            var t = e.changedTouches[0];
+            touchId = t.identifier;
+            vgpMarkBusy();
+            update(t.clientX, t.clientY);
+          });
+          container.addEventListener('touchmove', function (e) {
+            var t = vgpFindTouch(e, touchId);
+            if (!t) return;
+            e.preventDefault();
+            update(t.clientX, t.clientY);
+          });
+          function onEnd(e) {
+            if (touchId === null || !vgpFindTouch(e, touchId)) return;
+            release();
+          }
+          container.addEventListener('touchend', onEnd);
+          container.addEventListener('touchcancel', onEnd);
+          vgpRegisterControl(release);
         }
 
         setupStick(root.querySelector('.vgp-dpad'), root.querySelector('.vgp-knob'));
