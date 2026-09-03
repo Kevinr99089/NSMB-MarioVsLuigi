@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mvsl-shell-0aa849f926';
+const CACHE_NAME = 'mvsl-shell-c6f5b070ee';
 const SHELL_FILES = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {
