@@ -54,4 +54,6 @@ This repository is a passive distribution and optimization fork. Full credit for
 Please visit, star, and support the original project:
 👉 **[ipodtouch0218/NSMB-MarioVsLuigi](https://github.com/ipodtouch0218/NSMB-MarioVsLuigi)**
 
+- AI-assisted (by Claude) · Designed and directed by me.
+
 *Note: For gameplay bugs, feature requests regarding the core mechanics, or to contribute to the engine itself, please refer directly to the upstream repository.*
